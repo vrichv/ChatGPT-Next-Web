@@ -38,8 +38,9 @@ export function auth(req: NextRequest) {
   console.log("[Auth] hashed access code:", hashedCode);
   console.log("[User IP] ", getIP(req));
   console.log("[Time] ", new Date().toLocaleString());
+  const apikeyIndex = serverConfig.codes.indexOf(hashedCode);
 
-  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !token) {
+  if (serverConfig.needCode && apikeyIndex == -1 && !token) {
     return {
       error: true,
       msg: !accessCode ? "empty access code" : "wrong access code",
@@ -48,10 +49,10 @@ export function auth(req: NextRequest) {
 
   // if user does not provide an api key, inject system api key
   if (!token) {
-    const apiKey = serverConfig.apiKey;
-    if (apiKey) {
-      console.log("[Auth] use system api key");
-      req.headers.set("Authorization", `Bearer ${apiKey}`);
+    const apiKeys = serverConfig.apiKeys;
+    if (apikeyIndex != -1 && apiKeys[apikeyIndex]) {
+      console.log("[Auth] use system api key index: ", apikeyIndex);
+      req.headers.set("Authorization", `Bearer ${apiKeys[apikeyIndex]}`);
     } else {
       console.log("[Auth] admin did not provide an api key");
     }
