@@ -30,16 +30,16 @@ declare global {
   }
 }
 
-const ACCESS_CODES = (function getAccessCodes(): Set<string> {
+const ACCESS_CODES = (function getAccessCodes() {
   const code = process.env.CODE;
 
   try {
     const codes = (code?.split(",") ?? [])
       .filter((v) => !!v)
       .map((v) => md5.hash(v.trim()));
-    return new Set(codes);
+    return codes;
   } catch (e) {
-    return new Set();
+    return [];
   }
 })();
 
@@ -73,6 +73,7 @@ export const getServerSideConfig = () => {
   return {
     baseUrl: process.env.BASE_URL,
     apiKey,
+    apiKeys,
     openaiOrgId: process.env.OPENAI_ORG_ID,
 
     isAzure,
@@ -80,7 +81,7 @@ export const getServerSideConfig = () => {
     azureApiKey: process.env.AZURE_API_KEY,
     azureApiVersion: process.env.AZURE_API_VERSION,
 
-    needCode: ACCESS_CODES.size > 0,
+    needCode: ACCESS_CODES.length > 0,
     code: process.env.CODE,
     codes: ACCESS_CODES,
 

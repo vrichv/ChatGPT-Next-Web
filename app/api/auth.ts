@@ -38,8 +38,9 @@ export function auth(req: NextRequest) {
   console.log("[Auth] hashed access code:", hashedCode);
   console.log("[User IP] ", getIP(req));
   console.log("[Time] ", new Date().toLocaleString());
+  const apikeyIndex = serverConfig.codes.indexOf(hashedCode);
 
-  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !apiKey) {
+  if (serverConfig.needCode && apikeyIndex == -1  && !apiKey) {
     return {
       error: true,
       msg: !accessCode ? "empty access code" : "wrong access code",
@@ -55,12 +56,13 @@ export function auth(req: NextRequest) {
 
   // if user does not provide an api key, inject system api key
   if (!apiKey) {
+    const apiKeys = serverConfig.apiKeys;
     const serverApiKey = serverConfig.isAzure
       ? serverConfig.azureApiKey
-      : serverConfig.apiKey;
+      : apiKeys[apikeyIndex];
 
     if (serverApiKey) {
-      console.log("[Auth] use system api key");
+      console.log("[Auth] use system api key index: ", apikeyIndex );
       req.headers.set(
         "Authorization",
         `${serverConfig.isAzure ? "" : "Bearer "}${serverApiKey}`,
